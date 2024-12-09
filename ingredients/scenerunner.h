@@ -87,28 +87,28 @@ public:
         return EXIT_SUCCESS;
     }
 
-    static std::string parseCLArgs(int argc, char ** argv, std::map<std::string, std::string> & sceneData) {
+    static std::string parseCLArgs(int argc, char ** argv, const std::map<std::string, std::string> & sceneData) {
+        std::string recipeName;
         if( argc < 2 ) {
             printHelpInfo(argv[0], sceneData);
-            exit(EXIT_FAILURE);
         }
-
-        std::string recipeName = argv[1];
+        else recipeName = argv[1];
         auto it = sceneData.find(recipeName);
-        if( it == sceneData.end() ) {
-            printf("Unknown recipe: %s\n\n", recipeName.c_str());
-            printHelpInfo(argv[0], sceneData);
-            exit(EXIT_FAILURE);
+        while( it == sceneData.end() ) {
+            printf("\n> enter recipe: ");
+            recipeName.clear();
+            std::cin >> recipeName;
+            it = sceneData.find(recipeName);
         }
 
         return recipeName;
     }
 
 private:
-    static void printHelpInfo(const char * exeFile,  std::map<std::string, std::string> & sceneData) {
+    static void printHelpInfo(const char * exeFile,  const std::map<std::string, std::string> & sceneData) {
         printf("Usage: %s recipe-name\n\n", exeFile);
         printf("Recipe names: \n");
-        for( auto it : sceneData ) {
+        for( const auto& it : sceneData ) {
             printf("  %11s : %s\n", it.first.c_str(), it.second.c_str());
         }
     }
