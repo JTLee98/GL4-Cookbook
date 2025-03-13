@@ -11,7 +11,7 @@ using std::endl;
 using glm::vec3;
 using glm::mat4;
 
-SceneRefractCube::SceneRefractCube() : angle(0.0f), tPrev(0.0f), rotSpeed(glm::pi<float>() / 8.0f),
+SceneRefractCube::SceneRefractCube() : angle(0.0f), tPrev(0.0f), rotSpeed(glm::pi<float>() / 8.0f), chromatic_abb(true),
                                        teapot(14, glm::mat4(1.0f)){ }
 
 void SceneRefractCube::initScene()
@@ -21,7 +21,7 @@ void SceneRefractCube::initScene()
     glEnable(GL_DEPTH_TEST);
     angle = glm::radians(90.0f);
 
-	GLuint cubeTex = Texture::loadHdrCubeMap("../media/texture/cube/pisa-hdr/pisa");
+	GLuint cubeTex = Texture::loadHdrCubeMap("../media/texture/cube/grace/grace");
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, cubeTex);
 	glActiveTexture(GL_TEXTURE1);
@@ -35,12 +35,19 @@ void SceneRefractCube::initScene()
 
 void SceneRefractCube::update( float t )
 {
+  if (!animating()) return;
+
   float deltaT = t - tPrev;
   if(tPrev == 0.0f) deltaT = 0.0f;
   tPrev = t;
 
   angle += rotSpeed * deltaT;
-  if (angle > glm::two_pi<float>()) angle -= glm::two_pi<float>();
+  if (angle > glm::two_pi<float>()) 
+  {
+    angle -= glm::two_pi<float>();
+    chromatic_abb = !chromatic_abb;
+    prog.setUniform("Material.ChromaticAbb", chromatic_abb);
+  }
 }
 
 void SceneRefractCube::render()
@@ -59,7 +66,9 @@ void SceneRefractCube::render()
 	// Draw teapot
 	prog.use();
     prog.setUniform("WorldCameraPosition", cameraPos);
-    prog.setUniform("Material.Eta", 0.94f);
+    prog.setUniform("Material.Eta", 0.9f);
+    prog.setUniform("Material.ChromaticAbb", chromatic_abb);
+    prog.setUniform("Material.ChromaticAbb_RGB", vec3(0.05f, 0.0f, -0.1f));
     prog.setUniform("Material.ReflectionFactor", 0.1f);
 
     model = glm::translate(mat4(1.0f), vec3(0.0f,-1.0f,0.0f));

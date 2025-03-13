@@ -17,6 +17,7 @@ private:
     SkyBox sky;
 
     float angle, tPrev, rotSpeed;
+    bool chromatic_abb;
 
     void setMatrices(GLSLProgram &);
     void compileAndLinkShader();

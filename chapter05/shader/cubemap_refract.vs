@@ -5,10 +5,12 @@ layout (location = 1) in vec3 VertexNormal;
 layout (location = 2) in vec2 VertexTexCoord;
 
 out vec3 ReflectDir;
-out vec3 RefractDir;
+out vec3 RefractDir[3];
 
 struct MaterialInfo {
     float Eta;              // Index of refraction
+    bool  ChromaticAbb;     // Chromatic Abberation active
+    vec3  ChromaticAbb_RGB; // delta from Eta per RGB
     float ReflectionFactor; // Percentage of reflected light
 };
 uniform MaterialInfo Material;
@@ -27,6 +29,19 @@ void main()
     vec3 worldView = normalize( WorldCameraPosition - worldPos );
 
     ReflectDir = reflect(-worldView, worldNorm );
-    RefractDir = refract(-worldView, worldNorm, Material.Eta );
+    if (Material.ChromaticAbb)
+    {
+        // account for chromatic abberation
+        float e = Material.Eta;
+        vec3 EtaAbb = vec3(e, e, e) + Material.ChromaticAbb_RGB;
+        RefractDir[0] = refract(-worldView, worldNorm, EtaAbb.r ); // Red
+        RefractDir[1] = refract(-worldView, worldNorm, EtaAbb.g ); // Green
+        RefractDir[2] = refract(-worldView, worldNorm, EtaAbb.b ); // Blue
+    }
+    else
+    {
+        // only use element 0 of RefractDir
+        RefractDir[0] = refract(-worldView, worldNorm, Material.Eta );
+    }
     gl_Position = MVP * vec4(VertexPosition,1.0);
 }
